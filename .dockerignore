@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.git
+.github
+.husky
+.vscode
+__tests__
+*.md
+.env
+.env.*
+!.env.example
+Dockerfile*
+*.docker-compose.yml

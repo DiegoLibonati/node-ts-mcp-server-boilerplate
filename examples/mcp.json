@@ -1,0 +1,17 @@
+{
+  "//": "VS Code / Cursor — place at .vscode/mcp.json or .cursor/mcp.json.",
+  "servers": {
+    "mcp-boilerplate-stdio": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/dist/main.js"],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    },
+    "mcp-boilerplate-http": {
+      "type": "http",
+      "url": "http://127.0.0.1:5060/mcp"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+services:
+  mcp-server:
+    container_name: mcp-server-prod
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      MCP_TRANSPORT: http
+      HTTP_HOST: 0.0.0.0
+    ports:
+      - "5060:5060"
+    restart: unless-stopped
