@@ -12,9 +12,11 @@ const ENTRYPOINT: string = path.resolve(process.cwd(), "dist", "main.js");
 
 const BUILD_TIMEOUT_MS = 180_000;
 const SPAWN_TIMEOUT_MS = 30_000;
-const HANDSHAKE_TIMEOUT_MS = 10_000;
+const HANDSHAKE_TIMEOUT_MS = 30_000;
+const EXIT_TIMEOUT_MS = 5_000;
 const SETTLE_MS = 2_000;
 const EXPECTED_RESPONSES = 2;
+const STARTUP_LOG = "starting MCP server over stdio";
 
 const INITIALIZE_REQUEST: string = JSON.stringify({
   jsonrpc: "2.0",
@@ -46,6 +48,34 @@ const spawnServer = (): ChildProcessWithoutNullStreams =>
 const nonEmptyLinesOf = (raw: string): string[] =>
   raw.split("\n").filter((line: string) => line.trim().length > 0);
 
+const withDeadline = async (work: Promise<unknown>, ms: number): Promise<void> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const expired = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, ms);
+  });
+
+  try {
+    await Promise.race([work, expired]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+};
+
+const terminate = async (child: ChildProcessWithoutNullStreams): Promise<void> => {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+
+  const exited = new Promise<void>((resolve) => {
+    child.once("exit", () => {
+      resolve();
+    });
+  });
+
+  child.kill();
+
+  await withDeadline(exited, EXIT_TIMEOUT_MS);
+};
+
 const runHandshake = async (): Promise<ProcessOutput> => {
   const child: ChildProcessWithoutNullStreams = spawnServer();
 
@@ -60,21 +90,21 @@ const runHandshake = async (): Promise<ProcessOutput> => {
     });
   });
 
-  const expired = new Promise<void>((resolve) => {
-    setTimeout(resolve, HANDSHAKE_TIMEOUT_MS);
-  });
+  const logged = new Promise<void>((resolve) => {
+    child.stderr.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString();
 
-  child.stderr.on("data", (chunk: Buffer) => {
-    stderr += chunk.toString();
+      if (stderr.includes(STARTUP_LOG)) resolve();
+    });
   });
 
   child.stdin.write(`${INITIALIZE_REQUEST}\n`);
   child.stdin.write(`${INITIALIZED_NOTIFICATION}\n`);
   child.stdin.write(`${LIST_TOOLS_REQUEST}\n`);
 
-  await Promise.race([answered, expired]);
+  await withDeadline(Promise.all([answered, logged]), HANDSHAKE_TIMEOUT_MS);
 
-  child.kill();
+  await terminate(child);
 
   return { stdout, stderr };
 };
@@ -118,8 +148,8 @@ describe("stdio transport (integration)", () => {
   });
 
   it("should send its startup log to stderr instead of stdout", () => {
-    expect(output.stderr).toContain("starting MCP server over stdio");
-    expect(output.stdout).not.toContain("starting MCP server over stdio");
+    expect(output.stderr).toContain(STARTUP_LOG);
+    expect(output.stdout).not.toContain(STARTUP_LOG);
   });
 
   it(

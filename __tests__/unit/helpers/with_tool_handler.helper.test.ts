@@ -23,7 +23,6 @@ jest.mock("@/configs/logger.config", () => ({
 }));
 
 const mockLogger = jest.mocked(logger);
-
 const mockCtx = {} as ServerContext;
 
 describe("with_tool_handler.helper", () => {
