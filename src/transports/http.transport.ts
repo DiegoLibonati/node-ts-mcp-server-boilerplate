@@ -7,7 +7,7 @@ import type express from "express";
 
 import { createMcpServer } from "@/mcp";
 
-import { envs } from "@/configs/env.config";
+import { envs, loadedEnvFiles } from "@/configs/env.config";
 import { logger } from "@/configs/logger.config";
 
 import { auth } from "@/middlewares/auth.middleware";
@@ -52,7 +52,12 @@ export const startHttpTransport = (): Server => {
 
   const httpServer = app.listen(envs.HTTP_PORT, envs.HTTP_HOST, () => {
     logger.info(
-      { host: envs.HTTP_HOST, port: envs.HTTP_PORT, path: envs.HTTP_PATH },
+      {
+        host: envs.HTTP_HOST,
+        port: envs.HTTP_PORT,
+        path: envs.HTTP_PATH,
+        envFiles: loadedEnvFiles,
+      },
       "MCP server listening over streamable http"
     );
   });

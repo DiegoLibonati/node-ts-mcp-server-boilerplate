@@ -1,11 +1,12 @@
-import { config as loadDotenv } from "dotenv";
 import * as z from "zod/v4";
 
 import type { Envs } from "@/types/env";
 
+import { loadEnvFiles } from "@/configs/dotenv.config";
+
 import { parseCsv } from "@/helpers/parse_csv.helper";
 
-loadDotenv({ quiet: true });
+export const loadedEnvFiles: string[] = loadEnvFiles();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),

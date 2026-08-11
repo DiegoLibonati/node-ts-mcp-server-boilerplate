@@ -86,7 +86,7 @@ The main goal is to explore and demonstrate best practices, patterns, and techno
 1. Clone the repository.
 2. Navigate to the project folder.
 3. Install dependencies: `npm install`
-4. Copy `.env.example` to `.env` and fill in the values (see [Env Keys](#env-keys)).
+4. Optionally copy `.env.example` to `.env` and adjust the values (see [Env Keys](#env-keys)) — every key has a default.
 5. Run the server.
 
 | Command              | Description                                 |
@@ -173,6 +173,25 @@ Variables consumed by `src/configs/env.config.ts`. They are parsed and coerced t
 | `AUTH_TOKEN`           | Shared secret. Required when `AUTH_ENABLED=true`.                                               |
 | `SEED_DEFAULT_DATA`    | Seed the in-memory store on startup (`true`/`false`). Default: `false`.                         |
 
+### Env file cascade
+
+`src/configs/dotenv.config.ts` loads `.env` files before the Zod schema runs. A key is only applied if it is not already set, so real environment variables always win. Precedence, from highest to lowest:
+
+1. `process.env` (Docker `env_file`, CI, shell exports)
+2. `.env.<mode>.local`
+3. `.env.local`
+4. `.env.<mode>`
+5. `.env`
+
+`<mode>` comes from `NODE_ENV`: first from the process, then from a `NODE_ENV` declared inside `.env.local` or `.env`, and finally the `development` default.
+
+Two flows come out of this:
+
+- **Without Docker** — copy `.env.example` to `.env` (or a more specific file such as `.env.local`) and run `npm run dev` / `npm start`. Every key has a default, so the files are optional.
+- **With Docker** — the compose files inject `.env` through `env_file`, so values arrive as real environment variables and the cascade never overrides them. `.env` is optional there too (`required: false`, Compose >= 2.24).
+
+Under `NODE_ENV=test` only `.env.test.local` and `.env.test` are read — a local `.env` can never change the result of the test suite. The files that were actually applied are logged at startup as `envFiles`.
+
 ## Project Structure
 
 ```
@@ -200,6 +219,7 @@ node-ts-mcp-server-boilerplate/
 │   └── jest.setup.ts                       # Per-test setup (timeout + store reset)
 ├── src/
 │   ├── configs/
+│   │   ├── dotenv.config.ts                # Cascading .env file loader
 │   │   ├── env.config.ts                   # Zod-validated environment composition
 │   │   ├── logger.config.ts                # Pino pinned to stderr
 │   │   └── server.config.ts                # Identity, instructions and capabilities

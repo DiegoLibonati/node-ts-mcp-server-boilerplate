@@ -2,12 +2,13 @@ import type { Envs } from "@/types/env";
 
 interface EnvConfigModule {
   envs: Envs;
+  loadedEnvFiles: string[];
   isProduction: () => boolean;
   isTest: () => boolean;
 }
 
-jest.mock("dotenv", () => ({
-  config: jest.fn(),
+jest.mock("@/configs/dotenv.config", () => ({
+  loadEnvFiles: jest.fn((): string[] => []),
 }));
 
 const loadEnvConfig = (): EnvConfigModule =>
@@ -158,6 +159,12 @@ describe("env.config", () => {
 
       expect(() => loadEnvConfig()).toThrow(/HTTP_PORT/);
       expect(() => loadEnvConfig()).toThrow(/MCP_TRANSPORT/);
+    });
+  });
+
+  describe("env file loading", () => {
+    it("should expose the list of applied env files", () => {
+      expect(loadEnvConfig().loadedEnvFiles).toEqual([]);
     });
   });
 
