@@ -20,10 +20,9 @@
     "noUnusedParameters": true,
     "exactOptionalPropertyTypes": false,
 
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@tests/*": ["__tests__/*"]
+      "@/*": ["./src/*"],
+      "@tests/*": ["./__tests__/*"]
     }
   }
 }
