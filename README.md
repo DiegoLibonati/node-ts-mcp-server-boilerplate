@@ -251,7 +251,7 @@ node-ts-mcp-server-boilerplate/
 │   │   ├── parse_csv.helper.ts             # Comma-separated env value -> string[]
 │   │   ├── parse_note_id.helper.ts         # Validates a template variable
 │   │   ├── to_error_result.helper.ts       # AppError -> isError CallToolResult
-│   │   ├── to_tool_result.helper.ts        # Domain -> content + structuredContent
+│   │   ├── to_tool_result.helper.ts        # ToolResult.structured / ToolResult.text
 │   │   └── with_tool_handler.helper.ts     # Centralized try/catch + tracing wrapper
 │   ├── middlewares/                        # HTTP transport only
 │   │   ├── auth.middleware.ts              # Opt-in bearer guard
@@ -512,7 +512,7 @@ The wiring never changes. For a new capability:
 1. Add a Zod schema in `src/schemas/`, with `.describe()` on every field.
 2. Export its inferred types from `src/types/zod.ts`.
 3. Add the business logic as a property on the entity's `<Entity>Service` object in `src/services/` (and `src/daos/` if it touches storage).
-4. Add a property to the subject's `<Subject>ToolHandler` object in `src/handlers/tools/` that calls the service and returns `toToolResult(...)`.
+4. Add a property to the subject's `<Subject>ToolHandler` object in `src/handlers/tools/` that calls the service and returns `ToolResult.structured(...)`.
 5. Add the tool name to `src/constants/tools.constant.ts`, using the same key as the handler property.
 6. Register it in `src/registries/tool.registry.ts` with a description, schemas and annotations.
 

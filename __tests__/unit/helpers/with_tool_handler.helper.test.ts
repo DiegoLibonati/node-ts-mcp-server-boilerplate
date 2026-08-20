@@ -7,7 +7,7 @@ import { TOOLS_NOTES } from "@/constants/tools.constant";
 
 import { NotFoundError } from "@/errors/not_found.error";
 
-import { toToolResult } from "@/helpers/to_tool_result.helper";
+import { ToolResult } from "@/helpers/to_tool_result.helper";
 import { withToolHandler } from "@/helpers/with_tool_handler.helper";
 
 import { mockNote } from "@tests/__mocks__/notes.mock";
@@ -28,7 +28,7 @@ const mockCtx = {} as ServerContext;
 describe("with_tool_handler.helper", () => {
   describe("withToolHandler", () => {
     it("should return the handler result untouched on success", async () => {
-      const mockHandler = jest.fn().mockReturnValue(toToolResult(mockNote));
+      const mockHandler = jest.fn().mockReturnValue(ToolResult.structured(mockNote));
 
       const result: CallToolResult = await withToolHandler(TOOLS_NOTES.get, mockHandler)(
         { id: 1 },
@@ -39,7 +39,7 @@ describe("with_tool_handler.helper", () => {
     });
 
     it("should forward the arguments and the context to the handler", async () => {
-      const mockHandler = jest.fn().mockReturnValue(toToolResult(mockNote));
+      const mockHandler = jest.fn().mockReturnValue(ToolResult.structured(mockNote));
 
       await withToolHandler(TOOLS_NOTES.get, mockHandler)({ id: 1 }, mockCtx);
 
@@ -47,7 +47,7 @@ describe("with_tool_handler.helper", () => {
     });
 
     it("should await an asynchronous handler", async () => {
-      const mockHandler = jest.fn().mockResolvedValue(toToolResult(mockNote));
+      const mockHandler = jest.fn().mockResolvedValue(ToolResult.structured(mockNote));
 
       const result: CallToolResult = await withToolHandler(TOOLS_NOTES.get, mockHandler)(
         { id: 1 },
@@ -122,7 +122,7 @@ describe("with_tool_handler.helper", () => {
     });
 
     it("should not call the logger error channel on success", async () => {
-      const mockHandler = jest.fn().mockReturnValue(toToolResult(mockNote));
+      const mockHandler = jest.fn().mockReturnValue(ToolResult.structured(mockNote));
 
       await withToolHandler(TOOLS_NOTES.get, mockHandler)({ id: 1 }, mockCtx);
 

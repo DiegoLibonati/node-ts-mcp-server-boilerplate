@@ -4,7 +4,7 @@ import type { HealthOutput } from "@/types/zod";
 import { envs } from "@/configs/env.config";
 
 import { nowIso } from "@/helpers/now_iso.helper";
-import { toToolResult } from "@/helpers/to_tool_result.helper";
+import { ToolResult } from "@/helpers/to_tool_result.helper";
 
 export const HealthToolHandler = {
   check: (): CallToolResult => {
@@ -17,6 +17,6 @@ export const HealthToolHandler = {
       timestamp: nowIso(),
     };
 
-    return toToolResult(payload);
+    return ToolResult.structured(payload);
   },
 };
